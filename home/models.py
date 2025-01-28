@@ -32,7 +32,7 @@ class Faculty(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=70)
     last_name = models.CharField(max_length=70)  
-    join_date = models.DateField()  
+    join_date = models.DateField()
     image = models.ImageField(upload_to='faculty_faces/') 
 
     def __str__(self):
@@ -102,7 +102,7 @@ def preprocess_and_extract_embeddings(image_path):
     return embeddings
 
 
-def save_embeddings(embeddings, email, is_student=True):
+def save_embeddings(embeddings, email, is_student):
     email_name = email.split('@')[0] 
     folder = student_pickle_dir if is_student else faculty_pickle_dir
     file_path = os.path.join(folder, f'{email_name}.pkl') 
@@ -110,13 +110,14 @@ def save_embeddings(embeddings, email, is_student=True):
         pickle.dump(embeddings, f)
 
 
+
 @receiver(post_save, sender=Student)
 def generate_embeddings_for_student(sender, instance, created, **kwargs):
     if created: 
         image_path = instance.image.path
-        email = instance.email  
+        email = instance.email  #
         embeddings = preprocess_and_extract_embeddings(image_path)
-        save_embeddings(embeddings, email)
+        save_embeddings(embeddings, email, is_student=True)
 
 
 @receiver(post_save, sender=Faculty)
@@ -125,4 +126,4 @@ def generate_embeddings_for_faculty(sender, instance, created, **kwargs):
         image_path = instance.image.path
         email = instance.user.email 
         embeddings = preprocess_and_extract_embeddings(image_path)
-        save_embeddings(embeddings, email)
+        save_embeddings(embeddings, email, is_student=False)
