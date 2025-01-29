@@ -16,7 +16,7 @@ pickle_dir = 'enrollment'
 student_pickle_dir = os.path.join(pickle_dir, 'students') 
 faculty_pickle_dir = os.path.join(pickle_dir, 'faculty') 
 
-# stack---------------------------------------------------------
+# Stack---------------------------------------------------------
 
 class Stack(models.Model):
     stack_name = models.CharField(max_length=20)
@@ -25,7 +25,6 @@ class Stack(models.Model):
     def __str__(self):
         return self.stack_name
     
-
 # Faculty--------------------------------------------------------
 
 class Faculty(models.Model):
@@ -38,10 +37,10 @@ class Faculty(models.Model):
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
 
-
-# student--------------------------------------------------------
+# Student--------------------------------------------------------
 
 class Student(models.Model):
+    hub_id = models.CharField(max_length=20, unique=True, blank=True)
     first_name = models.CharField(max_length=70)
     last_name = models.CharField(max_length=70)
     GENDER_CHOICES = [
@@ -51,7 +50,7 @@ class Student(models.Model):
     ]
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     
-    stack = models.ForeignKey(Stack, on_delete=models.CASCADE,null=True,blank=True)
+    stack = models.ForeignKey(Stack, on_delete=models.CASCADE, null=True, blank=True)
     phone = models.BigIntegerField()
     email = models.EmailField(unique=True)
     info = models.TextField(null=True, blank=True)
@@ -60,17 +59,27 @@ class Student(models.Model):
         ('Present', 'Present'),
         ('Absent', 'Absent'),
         ('Interview', 'Interview'),
+        ('Inactive','Inactive'),
+        ('Placed','Placed'),
+        ('Resigned','Resigned')
     ]
-    present = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Absent')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Absent')
     join_date = models.DateField(default=datetime.date.today)
     is_active = models.BooleanField(default=True) 
     image = models.ImageField(upload_to="student_images/")
 
+    def save(self, *args, **kwargs):
+        if not self.hub_id: 
+            last_student = Student.objects.order_by('-id').first()
+            last_id = int(last_student.hub_id.replace('hub', '')) if last_student and last_student.hub_id else 0
+            self.hub_id = f'hub{last_id + 1}'
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
 
-# attendence  --------------------------------------------------------------------------
-   
+# Attendance ----------------------------------------------------------
+
 class AttendanceRecord(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     date = models.DateField(default=datetime.date.today)
@@ -82,16 +91,15 @@ class AttendanceRecord(models.Model):
     def __str__(self):
         return f'{self.student} - {self.date} - {self.status}'
     
-
-# --------------------------------------------------------------------------------------
-
+# ----------------------------------------------------------------------
 
 def preprocess_and_extract_embeddings(image_path):
     embeddings = []
-    if image_path.endswith(('.jpg', '.jpeg')):
+    if image_path.endswith(('.jpg', '.jpeg', '.png')):
         image = cv2.imread(image_path)
         rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         detections = mtcnn.detect_faces(rgb_image)
+
         if detections:
             for detection in detections:
                 x, y, w, h = detection['box']
@@ -99,31 +107,28 @@ def preprocess_and_extract_embeddings(image_path):
                 face_resized = cv2.resize(face, (160, 160))
                 embedding = embedder.embeddings([face_resized])[0]
                 embeddings.append(embedding)
+    
     return embeddings
 
-
-def save_embeddings(embeddings, email, is_student):
-    email_name = email.split('@')[0] 
+def save_embeddings(embeddings, file_name, is_student):
     folder = student_pickle_dir if is_student else faculty_pickle_dir
-    file_path = os.path.join(folder, f'{email_name}.pkl') 
+    file_path = os.path.join(folder, f'{file_name}.pkl')  
+
     with open(file_path, 'wb') as f:
         pickle.dump(embeddings, f)
-
-
 
 @receiver(post_save, sender=Student)
 def generate_embeddings_for_student(sender, instance, created, **kwargs):
     if created: 
         image_path = instance.image.path
-        email = instance.email  #
+        hub_id = instance.hub_id
         embeddings = preprocess_and_extract_embeddings(image_path)
-        save_embeddings(embeddings, email, is_student=True)
-
+        save_embeddings(embeddings, hub_id, is_student=True)
 
 @receiver(post_save, sender=Faculty)
 def generate_embeddings_for_faculty(sender, instance, created, **kwargs):
     if created: 
         image_path = instance.image.path
-        email = instance.user.email 
+        email_prefix = instance.user.email.split('@')[0]  
         embeddings = preprocess_and_extract_embeddings(image_path)
-        save_embeddings(embeddings, email, is_student=False)
+        save_embeddings(embeddings, email_prefix, is_student=False)

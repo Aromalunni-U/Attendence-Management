@@ -86,8 +86,6 @@ def add_student(request):
 embedder = FaceNet()
 face = face_analysis()
 
-
-# Folder paths for students and faculty
 students_pickle_path = os.path.join('enrollment', 'students')
 faculty_pickle_path = os.path.join('enrollment', 'faculty')
 
@@ -97,19 +95,18 @@ def recognize_face(face_embedding, dir_path):
     recognition_accuracy = 0
 
     for file in os.listdir(dir_path):
-        if file.endswith('.pkl'):  # Check for the correct pickle file format
+        if file.endswith('.pkl'):  
             stored_embeddings = pickle.load(open(os.path.join(dir_path, file), 'rb'))
             for stored_embedding in stored_embeddings:
                 distance = cosine(face_embedding, stored_embedding)
-                accuracy = (1 - distance) * 100  # Convert cosine distance to accuracy
+                accuracy = (1 - distance) * 100  
 
                 if distance < min_distance:
                     min_distance = distance
-                    # Extract the part before @ in the email (from filename)
-                    recognized_person = file.split('.')[0]  # Remove the '.pkl' extension
+                    recognized_person = file.split('.')[0] 
                     recognition_accuracy = accuracy
 
-    if min_distance < 0.6:  # Threshold can be adjusted
+    if min_distance < 0.6:  
         return recognized_person, recognition_accuracy
     else:
         return "UNKNOWN", 0
@@ -117,10 +114,8 @@ def recognize_face(face_embedding, dir_path):
 def gen(request):
     cap = cv2.VideoCapture(1)
     
-    # Get the duration from the GET parameters passed in the URL
-    duration = int(request.GET.get('duration', 0))  # in milliseconds from JavaScript
+    duration = int(request.GET.get('duration', 0))
 
-    # Convert milliseconds to seconds for time calculations
     duration_seconds = duration / 1000
 
     start_time = time.time()
@@ -147,18 +142,17 @@ def gen(request):
                     face_resized = cv2.resize(face_crop, (160, 160))
 
                     face_embedding = embedder.embeddings([face_resized])[0]
-                    email, accuracy = recognize_face(face_embedding, students_pickle_path)  # Try the students folder first
+                    hub_id, accuracy = recognize_face(face_embedding, students_pickle_path)  
 
-
-                    if email != "UNKNOWN" and accuracy > 72:
+                    if hub_id != "UNKNOWN" and accuracy > 72:
                         try:
-                            student = get_object_or_404(Student, email=email + "@gmail.com") 
-                            student.present = "Present"
+                            student = get_object_or_404(Student, hub_id=hub_id) 
+                            student.status = "Present"
                             student.save()
                         except Student.DoesNotExist:
                             pass
 
-                        cv2.putText(frame, f"{email} ({accuracy:.2f}%)", (x, y - 10),
+                        cv2.putText(frame, f"{hub_id} ({accuracy:.2f}%)", (x, y - 10),
                                     cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
                         cv2.rectangle(frame, (x, y), (x + h, y + w), (0, 255, 0), 2)
 
