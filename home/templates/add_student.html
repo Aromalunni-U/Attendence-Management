@@ -48,7 +48,7 @@
             <div class="row mb-3">
                 <div class="col-md-6">
                     <label for="stack" class="form-label">Stack</label>
-                    <select class="form-select" id="stack" name="stack">
+                    <select class="form-select" id="stack" name="stack" required>
                         <option value="">Select Stack</option>
                         {% for stack in stacks %}
                             <option value="{{ stack.id }}">{{ stack.stack_name }}</option>
