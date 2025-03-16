@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-header text-white text-center" style="background-color: #940a8f;">
+                    <h4>Add Faculty</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if messages %} 
+                        <div> 
+                            {% for message in messages %} 
+                                <div class="alert alert-success alert-dismissible fade show" role="alert"> 
+                                    <strong>{{ message }}</strong> 
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button> 
+                                </div> 
+                            {% endfor %}     
+                        </div> 
+                    {% endif %}
+                        <!-- User Selection -->
+                        <div class="mb-3">
+                            <label class="form-label">User</label>
+                            <div class="d-flex">
+                                <input type="text" id="selectedUser" class="form-control me-2 w-50" placeholder="No user selected" readonly required>
+                                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createUserModal">+ Create User</button>
+                            </div>
+                            <input type="hidden" name="user" id="userId" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="first_name" class="form-label">First Name</label>
+                            <input type="text" name="first_name" id="first_name" class="form-control" required autocomplete="off">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <input type="text" name="last_name" id="last_name" class="form-control" required autocomplete="off">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="join_date" class="form-label">Join Date</label>
+                            <input type="date" name="join_date" id="join_date" class="form-control" required>
+                        </div>
+
+                        <!-- Camera Capture Section -->
+                        <div class="mb-3 text-center">
+                            <label class="form-label">Capture Image</label>
+                            <div id="camera-container" class="d-flex flex-column align-items-center">
+                                <video id="video" width="320" height="240" autoplay></video>
+                                <button type="button" id="capture-btn" class="btn btn-success mt-2">Capture</button>
+                                <canvas id="canvas" width="320" height="240" class="d-none"></canvas>
+                                <img id="captured-image" class="mt-3 d-none" width="320" height="240" />
+                                <p id="retake-note" class="text-muted mt-2 d-none">Click "Capture" again to retake the image.</p>
+                            </div>
+                            <input type="hidden" id="image-data" name="image" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Add Faculty</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Creation Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createUserForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" id="username" class="form-control" required autocomplete="off">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" id="password" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" id="email" class="form-control" required autocomplete="off">
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Create User</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+document.getElementById("createUserForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+    
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    const email = document.getElementById("email").value;
+
+    fetch("{% url 'create_user' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
+        },
+        body: JSON.stringify({ username, password, email })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert("User created successfully!");
+            document.getElementById("selectedUser").value = username;
+            document.getElementById("userId").value = data.user_id;
+            var modal = bootstrap.Modal.getInstance(document.getElementById("createUserModal"));
+            modal.hide();
+        } else {
+            alert("Error: " + data.message);
+        }
+    });
+});
+
+// Camera Functionality
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const captureBtn = document.getElementById('capture-btn');
+const imageDataInput = document.getElementById('image-data');
+const capturedImage = document.getElementById('captured-image');
+const retakeNote = document.getElementById('retake-note');
+
+navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => { video.srcObject = stream; })
+    .catch(err => { console.error('Error accessing the camera: ', err); });
+
+captureBtn.addEventListener('click', () => {
+    const context = canvas.getContext('2d');
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageDataURL = canvas.toDataURL('image/png');
+    imageDataInput.value = imageDataURL;
+    
+    capturedImage.src = imageDataURL;
+    capturedImage.classList.remove('d-none');
+    retakeNote.classList.remove('d-none');
+});
+</script>
+
+
+
+{% endblock content %}

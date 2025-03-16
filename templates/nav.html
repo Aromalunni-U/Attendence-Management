@@ -1,0 +1,40 @@
+<nav class="navbar navbar-expand-lg navbar-light mb-5" style="background-color: #940a8f;">
+    <div class="container-fluid">
+        <a class="navbar-brand text-light" style="padding-left: 80px;" href="{% url 'index' %}">
+            <h3>Luminar Technohub</h3>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link text-light pe-4" href="{% url 'sheet' %}">Sheet</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-light pe-4" href="{% url 'add_student' %}">Add</a>
+                </li>
+
+                {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link text-light pe-5" href="{% url 'admin_dashboard' %}">Admin</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-light pe-5" href="#" id="loginDropdown" role="button" 
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            Login
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="loginDropdown">
+                            <li><a class="dropdown-item" href="{% url 'faculty_login' %}">Login with Face ID</a></li>
+                            <li><a class="dropdown-item" href="{% url 'login' %}">Login with Password</a></li>
+                        </ul>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

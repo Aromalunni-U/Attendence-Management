@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block content %}  
+<div class="container py-5">     
+    <h2 class="text-center mb-5">Faculty Members</h2>      
+    <div class="row justify-content-center">         
+        {% for faculty in faculty_members %}         
+        <div class="col-md-4 col-lg-3 mb-4">             
+            <div class="card shadow-lg border-0 h-100 d-flex flex-column" style="max-height: 450px;">                 
+                <img src="{{ faculty.image.url }}" class="card-img-top rounded-top" alt="{{ faculty.first_name }} {{ faculty.last_name }}" style="height: 200px; object-fit: cover;">                 
+                <div class="card-body text-center d-flex flex-column p-3">                     
+                    <h5 class="card-title mb-2">{{ faculty.first_name }} {{ faculty.last_name }}</h5>                     
+                    <p class="text-muted mt-auto">Joined: {{ faculty.join_date }}</p>   
+
+                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ faculty.id }}">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                </div>             
+            </div>         
+        </div>  
+
+        <div class="modal fade" id="deleteModal{{ faculty.id }}" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Are you sure you want to delete <strong>{{ faculty.first_name }} {{ faculty.last_name }}</strong>?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <form method="POST" action="{% url 'faculty_list' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="faculty_id" value="{{ faculty.id }}">
+                            <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% empty %}         
+        <div class="col-12 text-center">             
+            <p class="text-muted">No faculty members found.</p>         
+        </div>         
+        {% endfor %}     
+    </div> 
+</div>  
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+      {% if messages %}
+        {% for message in messages %}
+          Swal.fire({
+            toast: true,
+            position: "top",
+            icon: "success",
+            title: "{{ message }}",
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+              toast.querySelector('.swal2-timer-progress-bar').style.backgroundColor = "rgb(19, 255, 98)";
+            }
+          });
+        {% endfor %}
+      {% endif %}
+    });
+</script>
+
+{% endblock content %}

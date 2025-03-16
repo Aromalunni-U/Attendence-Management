@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container my-5 d-flex justify-content-center">
+    <div class="card shadow-lg p-4 rounded border-0" style="max-width: 650px; width: 100%; background-color: #ffffff;">
+        
+        <!-- Profile Image -->
+        <div class="text-center">
+            {% if student.image %}
+                <img src="{{ student.image.url }}" alt="Profile Image" class="rounded-circle border shadow-sm"
+                     style="width: 160px; height: 160px; object-fit: cover;">
+            {% else %}
+                <img src="https://via.placeholder.com/160" alt="No Image" class="rounded-circle border shadow-sm">
+            {% endif %}
+        </div>
+
+        <!-- Student Name & Stack -->
+        <div class="text-center mt-3">
+            <h2 class="fw-bold text-dark">{{ student.first_name }} {{ student.last_name }}</h2>
+            <p class="text-muted mb-1 fs-5">{{ student.stack.stack_name }}</p>
+            <span class="badge {% if student.status == 'Present' %}bg-success{% else %}bg-danger{% endif %} px-3 py-2 fs-6">
+                {{ student.status }}
+            </span>
+        </div>
+
+        <hr class="my-4">
+
+        <!-- Student Details -->
+        <div class="px-4">
+            <p><strong>🆔 Hub ID:</strong> <span class="text-muted">{{ student.hub_id }}</span></p>
+            <p><strong>📅 Join Date:</strong> <span class="text-muted">{{ student.join_date }}</span></p>
+            <p><strong>📞 Phone:</strong> <a href="tel:{{ student.phone }}" class="text-decoration-none text-dark">{{ student.phone }}</a></p>
+            <p><strong>📧 Email:</strong> <a href="mailto:{{ student.email }}" class="text-decoration-none text-dark">{{ student.email }}</a></p>
+        </div>
+
+        <!-- Buttons -->
+        <div class="text-center mt-4 d-flex justify-content-between">
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-dark w-100 mx-1">Back</a>
+            <a href="{% url 'edit_student' student.id %}" class="btn btn-primary w-100 mx-1">Edit</a>
+            <button class="btn btn-danger w-100 mx-1" onclick="confirmDelete({{ student.id }})">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Confirmation -->
+<script>
+    function confirmDelete(studentId) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "This action cannot be undone.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete",
+            cancelButtonText: "Cancel",
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "{% url 'delete_student' student.id %}";
+            }
+        });
+    }
+</script>
+
+<!-- Include SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+{% endblock %}

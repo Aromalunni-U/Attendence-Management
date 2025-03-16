@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="container p-5">
+    <div class="container p-5 shadow rounded bg-light" style="max-width: 400px; width: 100%;">
+      <h1 class="text-center mb-3 fs-2 fw-2">Admin Login</h1>
+      <form method="post">
+        {% csrf_token %}
+        <input type="text" name="username" class="form-control" placeholder="Username" required autocomplete="off" />
+        <input type="password" name="password" class="form-control mt-3" placeholder="Password" required />
+        <button class="btn btn-primary mt-3" type="submit">Login</button>
+      </form>
+    </div>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      {% if messages %}
+        {% for message in messages %}
+          Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "{% if message.tags == 'success' %}success{% else %}error{% endif %}",
+            title: "{{ message }}",
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+              toast.querySelector('.swal2-timer-progress-bar').style.backgroundColor = "rgb(218, 15, 69)";
+            }
+          });
+        {% endfor %}
+      {% endif %}
+    });
+</script>
+{% endblock %}
