@@ -20,11 +20,19 @@ This is a **Django-based Attendance Management System** that helps track and man
    ```bash
    pip install -r requirements.txt
    ```
-3. Run the Django server:
+3. Apply Migrations
+   ```bash
+   python manage.py migrate
+   ```
+4. Create a Superuser
+   ```bash
+   python manage.py createsuperuser
+   ```
+5. Run the Django server:
    ```bash
    python manage.py runserver
    ```
-4. Open the web app in your browser at:
+6. Open the web app in your browser at:
    ```
    http://127.0.0.1:8000/
    ```
