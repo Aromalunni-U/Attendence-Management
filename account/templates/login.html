@@ -17,7 +17,7 @@
         {% for message in messages %}
           Swal.fire({
             toast: true,
-            position: "top-end",
+            position: "top",
             icon: "{% if message.tags == 'success' %}success{% else %}error{% endif %}",
             title: "{{ message }}",
             showConfirmButton: false,

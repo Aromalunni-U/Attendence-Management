@@ -120,6 +120,7 @@ def delete_student(request, student_id):
 
 def edit_student(request, student_id):
     student = get_object_or_404(Student, id=student_id)
+    stacks = Stack.objects.all() 
     
     if request.method == "POST":
         student.first_name = request.POST.get("first_name")
@@ -130,9 +131,8 @@ def edit_student(request, student_id):
         student.join_date = request.POST.get("join_date")
         student.info = request.POST.get("info")
 
-        stack_name = request.POST.get("stack")
-        stack, created = Stack.objects.get_or_create(stack_name=stack_name)
-        student.stack = stack
+        stack_id = request.POST.get("stack")
+        student.stack = Stack.objects.get(id=stack_id)
 
         if "image" in request.FILES:
             student.image = request.FILES["image"]
@@ -148,7 +148,7 @@ def edit_student(request, student_id):
         student.save()
         return redirect("student_detail", student_id=student.id)
 
-    return render(request, "edit_student.html", {"student": student})
+    return render(request, "edit_student.html", {"student": student, "stacks": stacks})
 
 
 # Add stack________________________________________________________________________________

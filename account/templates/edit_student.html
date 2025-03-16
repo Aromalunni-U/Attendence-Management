@@ -35,11 +35,17 @@
                 </div>
                 <div class="col">
                     <label class="fw-bold">Stack:</label>
-                    <input type="text" name="stack" class="form-control" value="{{ student.stack.stack_name }}" required>
+                    <select name="stack" class="form-control" required>
+                        {% for stack in stacks %}
+                            <option value="{{ stack.id }}" {% if student.stack.id == stack.id %}selected{% endif %}>
+                                {{ stack.stack_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
                 </div>
+                
             </div>
 
-            <!-- Phone & Email -->
             <div class="row mb-3">
                 <div class="col">
                     <label class="fw-bold">Phone:</label>
@@ -51,7 +57,6 @@
                 </div>
             </div>
 
-            <!-- Status & Join Date -->
             <div class="row mb-3">
                 <div class="col">
                     <label class="fw-bold">Status:</label>
@@ -70,13 +75,11 @@
                 </div>
             </div>
 
-            <!-- Additional Info -->
             <div class="mb-3">
                 <label class="fw-bold">Additional Info:</label>
                 <textarea name="info" class="form-control" rows="3">{{ student.info }}</textarea>
             </div>
 
-            <!-- Profile Image Preview Only -->
             {% if student.image %}
                 <div class="mb-3">
                     <label class="fw-bold">Profile Image:</label>
@@ -86,7 +89,6 @@
                 </div>
             {% endif %}
 
-            <!-- Webcam Capture -->
             <div class="mb-3">
                 <label class="fw-bold">Capture Image:</label>
                 <div class="d-flex flex-column align-items-center">
@@ -97,7 +99,6 @@
                 <input type="hidden" name="captured_image" id="captured_image">
             </div>
 
-            <!-- Save & Cancel Buttons -->
             <div class="row">
                 <div class="col-md-6">
                     <button type="submit" class="btn btn-success w-100">Save</button>
@@ -111,13 +112,11 @@
     </div>
 </div>
 
-<!-- JavaScript for Webcam Capture -->
 <script>
     let video = document.getElementById("webcam");
     let canvas = document.getElementById("canvas");
     let capturedImageInput = document.getElementById("captured_image");
 
-    // Start Webcam
     navigator.mediaDevices.getUserMedia({ video: true })
         .then(stream => {
             video.srcObject = stream;
@@ -130,11 +129,9 @@
         canvas.height = video.videoHeight;
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // Convert to base64
         let imageData = canvas.toDataURL("image/png");
         capturedImageInput.value = imageData;
 
-        // Show the preview
         document.getElementById("previewImage").src = imageData;
     }
 </script>
